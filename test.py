@@ -19,7 +19,8 @@ ws.wait_for_connection()
 
 # ws.subscribe_raw_books('tBTCUSD', '25')
 
-ws.subscribe_candles()
+# ws.subscribe_candles()
+ws.authenticate()
 
 time.sleep(10)
 ws.disconnect()

@@ -2,13 +2,18 @@ import threading
 import websocket
 import json
 import requests
+import time
+import hmac
+import hashlib
 
 
 class WebSockInterface:
     def __init__(self, key, secret):
         super().__init__()
-        uri = 'wss://api.bitfinex.com/ws/2'
-        self.sock = SockThread(uri)
+        self.uri = 'wss://api.bitfinex.com/ws/2'
+        self.sock = SockThread(self.uri)
+        self.key = key
+        self.secret = secret
 
     def wait_for_connection(self):
         while not self.sock.is_connected():
@@ -51,7 +56,17 @@ class WebSockInterface:
                             'channel': 'candles',
                             'key': 'trade:1m:tBTCUSD'})
 
-
+    def authenticate(self, filters=None):
+        authNonce = str(int(time.time()*10000000))
+        authPayload = 'AUTH' + authNonce
+        authSig = hmac.new(self.secret.encode(), authPayload.encode(), hashlib.sha384).hexdigest()
+        payload = {'event': 'auth',
+                   'apiKey': self.key,
+                   'authSig': authSig,
+                   'authPayload': authPayload,
+                   'authNonce': authNonce}
+        # payload = json.dumps(payload)
+        self.sock.send_msg(payload)
 
     def list_symbols(self):
         return requests.get('https://api.bitfinex.com/v1/symbols_details').json()
@@ -100,21 +115,42 @@ class SockThread(threading.Thread):
                 else:
                     print(message)
                     raise ValueError('unhandled subscription')
+            elif msg['event'] == 'auth':
+                if msg['status'] == 'OK':
+                    pass
+                else:
+                    print(message)
+                    raise ValueError('authentication failed')
             else:
                 print(message)
                 raise ValueError('unhandled event')
         else:
             if type(msg) == list:
+                print(msg)
                 if 'hb' in msg:
                     pass
                 elif 'te' in msg or 'tu' in msg:
-                    print(msg)
+                    pass
+                elif 'ps' in msg:
+                    pass
+                elif 'ws' in msg:
+                    pass
+                elif 'os' in msg:
+                    pass
+                elif 'fos' in msg:
+                    pass
+                elif 'fcs' in msg:
+                    pass
+                elif 'fls' in msg:
+                    pass
+                elif 'ats' in msg:
+                    pass
                 else:
                     if type(msg[1]) == list and \
                             (type(msg[1][0]) == float or type(msg[1][0]) == int):
-                        print(msg)
+                        pass
                     elif type(msg[1]) == list and type(msg[1][0]) == list:
-                        print(msg)
+                        pass
                     else:
                         print(message)
                         raise ValueError('message not recognized')
