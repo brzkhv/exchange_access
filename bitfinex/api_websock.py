@@ -65,7 +65,6 @@ class WebSockInterface:
                    'authSig': authSig,
                    'authPayload': authPayload,
                    'authNonce': authNonce}
-        # payload = json.dumps(payload)
         self.sock.send_msg(payload)
 
     def list_symbols(self):
@@ -88,6 +87,9 @@ class SockThread(threading.Thread):
 
     def disconnect(self):
         self.sock_app.close()
+
+    def reconnect(self):
+        return
 
     def send_msg(self, msg):
         self.sock_app.send(json.dumps(msg))
